@@ -1,0 +1,24 @@
+# troubleshoot-crashloop.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: troubleshoot-crashloop
+spec:
+  containers:
+  - name: failing-app
+    image: busybox:1.35
+    command: ['sh', '-c']
+    args:
+    - |
+      echo "Starting application..."
+      sleep 5
+      echo "Application failed!"
+      exit 1  # Force failure
+    resources:
+      requests:
+        memory: "32Mi"
+        cpu: "25m"
+      limits:
+        memory: "64Mi"
+        cpu: "50m"
+  restartPolicy: Always

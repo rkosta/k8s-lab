@@ -1,0 +1,14 @@
+# Create a problematic pod for troubleshooting
+# troubleshoot-pending.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: troubleshoot-pending
+spec:
+  containers:
+  - name: resource-hungry
+    image: nginx:1.21
+    resources:
+      requests:
+        memory: "20Gi"  # Intentionally large
+        cpu: "12"        # Intentionally large

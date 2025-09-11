@@ -1,0 +1,62 @@
+# lab2-multi-container.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab2-multi-container
+  labels:
+    lab: "2"
+    exercise: multi-container
+spec:
+  containers:
+  - name: writer
+    image: busybox:1.35
+    command: ['sh', '-c']
+    args:
+    - |
+      counter=1
+      while true; do
+        echo "$(date): Message #$counter from writer" >> /shared/messages.log
+        counter=$((counter + 1))
+        sleep 5
+      done
+    volumeMounts:
+    - name: shared-vol
+      mountPath: /shared
+    resources:
+      requests:
+        memory: "16Mi"
+        cpu: "10m"
+      limits:
+        memory: "32Mi"
+        cpu: "25m"
+  
+  - name: reader
+    image: busybox:1.35
+    command: ['sh', '-c']
+    args:
+    - |
+      while true; do
+        echo "=== Latest messages from reader ==="
+        if [ -f /shared/messages.log ]; then
+          tail -5 /shared/messages.log
+        else
+          echo "No messages yet"
+        fi
+        echo "=================================="
+        sleep 10
+      done
+    volumeMounts:
+    - name: shared-vol
+      mountPath: /shared
+    resources:
+      requests:
+        memory: "16Mi"
+        cpu: "10m"
+      limits:
+        memory: "32Mi"
+        cpu: "25m"
+  
+  volumes:
+  - name: shared-vol
+    emptyDir:
+      sizeLimit: "10Mi"

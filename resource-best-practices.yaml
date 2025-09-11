@@ -1,0 +1,44 @@
+# resource-best-practices.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: resource-best-practices
+  labels:
+    app: production-app
+    tier: backend
+spec:
+  containers:
+  - name: web-server
+    image: nginx:1.21-alpine
+    ports:
+    - containerPort: 80
+    resources:
+      # Always set requests for production workloads
+      requests:
+        memory: "128Mi"    # Based on actual usage + buffer
+        cpu: "100m"        # 0.1 CPU cores
+        ephemeral-storage: "1Gi"
+      # Set limits to prevent resource hogging
+      limits:
+        memory: "256Mi"    # 2x requests for burstable QoS
+        cpu: "200m"        # 2x requests allows for spikes
+        ephemeral-storage: "2Gi"
+    # Health checks for proper lifecycle management
+    livenessProbe:
+      httpGet:
+        path: /
+        port: 80
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    readinessProbe:
+      httpGet:
+        path: /
+        port: 80
+      initialDelaySeconds: 5
+      periodSeconds: 5
+    # Environment-specific configuration
+    env:
+    - name: NGINX_WORKER_PROCESSES
+      value: "2"
+    - name: NGINX_WORKER_CONNECTIONS
+      value: "1024"

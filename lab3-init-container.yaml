@@ -1,0 +1,83 @@
+# lab3-init-container.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab3-init-container
+  labels:
+    lab: "3"
+    exercise: init-containers
+spec:
+  initContainers:
+  - name: setup-config
+    image: busybox:1.35
+    command: ['sh', '-c']
+    args:
+    - |
+      echo "Setting up application configuration..."
+      echo "database_host=localhost" > /shared/app.conf
+      echo "database_port=5432" >> /shared/app.conf
+      echo "log_level=info" >> /shared/app.conf
+      echo "cache_enabled=true" >> /shared/app.conf
+      echo "Configuration setup complete!"
+    volumeMounts:
+    - name: shared-vol
+      mountPath: /shared
+    resources:
+      requests:
+        memory: "16Mi"
+        cpu: "10m"
+      limits:
+        memory: "32Mi"
+        cpu: "25m"
+  
+  - name: download-assets
+    image: curlimages/curl:7.85.0
+    command: ['sh', '-c']
+    args:
+    - |
+      echo "Downloading application assets..."
+      echo "Asset file content" > /shared/assets.txt
+      echo "Mock download complete"
+      sleep 2
+      echo "Assets ready!"
+    volumeMounts:
+    - name: shared-vol
+      mountPath: /shared
+    resources:
+      requests:
+        memory: "16Mi"
+        cpu: "10m"
+      limits:
+        memory: "32Mi"
+        cpu: "25m"
+  
+  containers:
+  - name: main-app
+    image: busybox:1.35
+    command: ['sh', '-c']
+    args:
+    - |
+      echo "Main application starting..."
+      echo "Reading configuration:"
+      cat /shared/app.conf
+      echo ""
+      echo "Checking assets:"
+      cat /shared/assets.txt
+      echo ""
+      echo "Application running normally"
+      sleep 3600
+    volumeMounts:
+    - name: shared-vol
+      mountPath: /shared
+    resources:
+      requests:
+        memory: "32Mi"
+        cpu: "25m"
+      limits:
+        memory: "64Mi"
+        cpu: "50m"
+  
+  volumes:
+  - name: shared-vol
+    emptyDir:
+      sizeLimit: "50Mi"

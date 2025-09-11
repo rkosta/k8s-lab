@@ -1,0 +1,22 @@
+# lab1-basic-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab1-basic-pod
+  labels:
+    lab: "1"
+    exercise: basic-operations
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.21
+    ports:
+    - name: http
+      containerPort: 80
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "128Mi"
+        cpu: "100m"

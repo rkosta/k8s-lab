@@ -1,0 +1,45 @@
+# resource-monitoring-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: resource-monitoring
+  labels:
+    app: monitoring-example
+spec:
+  containers:
+  - name: cpu-memory-app
+    image: busybox:1.35
+    command: ['sh', '-c']
+    args:
+    - |
+      # Simulate varying CPU and memory usage
+      while true; do
+        echo "Starting CPU intensive task..."
+        # CPU load simulation
+        for i in $(seq 1 100); do
+          echo $((i * i)) > /dev/null
+        done
+        
+        # Memory allocation simulation
+        echo "Allocating memory..."
+        dd if=/dev/zero of=/tmp/memtest bs=1M count=50 2>/dev/null
+        
+        sleep 10
+        rm -f /tmp/memtest
+        sleep 5
+      done
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "128Mi"
+        cpu: "100m"
+    volumeMounts:
+    - name: tmp-storage
+      mountPath: /tmp
+  
+  volumes:
+  - name: tmp-storage
+    emptyDir:
+      sizeLimit: "100Mi"
