@@ -1,0 +1,35 @@
+# assessment-pod.yaml
+# Create a pod that demonstrates mastery of Chapter 4 concepts
+apiVersion: v1
+kind: Pod
+metadata:
+  name: chapter4-assessment
+  labels:
+    assessment: chapter4
+    app: full-demo
+spec:
+  containers:
+  - name: main-app
+    image: nginx:1.21
+    ports:
+    - name: http
+      containerPort: 80
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "128Mi"
+        cpu: "100m"
+  - name: log-processor
+    image: busybox:1.35
+    command: ['sh', '-c']
+    args:
+    - while true; do echo "Processing logs..."; sleep 30; done
+    resources:
+      requests:
+        memory: "16Mi"
+        cpu: "10m"
+      limits:
+        memory: "32Mi"
+        cpu: "25m"
