@@ -1,0 +1,70 @@
+# basic-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: data-processing-job
+  labels:
+    app: data-processor
+    type: batch
+spec:
+  # Job completion requirements
+  completions: 3           # Total successful pods needed
+  parallelism: 2           # Maximum pods running simultaneously
+  backoffLimit: 6          # Maximum retries for failed pods
+  activeDeadlineSeconds: 300  # Maximum time for job completion
+  
+  # Pod template
+  template:
+    metadata:
+      labels:
+        app: data-processor
+        type: batch
+    spec:
+      restartPolicy: Never  # Required for Jobs (Never or OnFailure)
+      
+      containers:
+      - name: processor
+        image: busybox:1.35
+        command: ['sh', '-c']
+        args:
+        - |
+          echo "Starting data processing on $(date)"
+          echo "Pod: $POD_NAME, Node: $NODE_NAME"
+          
+          # Simulate data processing work
+          PROCESS_TIME=$((15 + RANDOM % 30))
+          echo "Processing will take $PROCESS_TIME seconds"
+          
+          for i in $(seq 1 $PROCESS_TIME); do
+            echo "Processing... $i/$PROCESS_TIME"
+            sleep 1
+          done
+          
+          # Simulate random success/failure (90% success rate)
+          if [ $((RANDOM % 10)) -lt 9 ]; then
+            echo "Data processing completed successfully"
+            exit 0
+          else
+            echo "Data processing failed"
+            exit 1
+          fi
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: JOB_COMPLETION_INDEX
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.annotations['batch.kubernetes.io/job-completion-index']
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
