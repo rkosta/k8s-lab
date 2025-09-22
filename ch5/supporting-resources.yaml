@@ -1,0 +1,32 @@
+# supporting-resources.yaml
+# Service Account for RBAC
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: web-app-sa
+  labels:
+    app: production-web
+automountServiceAccountToken: true
+---
+# Service to expose the deployment
+apiVersion: v1
+kind: Service
+metadata:
+  name: production-web-service
+  labels:
+    app: production-web
+    tier: frontend
+spec:
+  selector:
+    app: production-web
+    tier: frontend
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  type: ClusterIP
