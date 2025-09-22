@@ -1,0 +1,51 @@
+# Create an updated version of the application
+# rolling-update-demo.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rolling-update-demo
+  labels:
+    app: rolling-demo
+spec:
+  replicas: 6
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 2    # Can have 2 pods down during update
+      maxSurge: 2          # Can have 2 extra pods during update
+  selector:
+    matchLabels:
+      app: rolling-demo
+  template:
+    metadata:
+      labels:
+        app: rolling-demo
+        version: "1.0"
+    spec:
+      containers:
+      - name: app
+        image: nginx:1.21
+        ports:
+        - containerPort: 80
+        env:
+        - name: VERSION
+          value: "1.0"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 2
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 5
