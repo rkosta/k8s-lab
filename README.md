@@ -83,39 +83,65 @@ k8s-lab/
 
 ## Prerequisites
 
-- **Kubernetes Cluster**: minikube, kind, k3s, or cloud-based cluster (GKE, EKS, AKS)
-- **kubectl**: v1.20 or higher
+- **Kubernetes Cluster**: k3s (recommended) or cloud-based cluster (GKE, EKS, AKS)
+- **kubectl**: Included with k3s installation
 - **Basic Knowledge**: Understanding of containers and Docker
 
-### Kubernetes Cluster Setup
+## Installation
 
-Choose one of the following:
+### Kubernetes Cluster Setup with k3s
 
-**Minikube** (recommended for local learning):
+k3s is a lightweight, production-ready Kubernetes distribution perfect for learning, development, and edge deployments. It uses 40% less memory than standard Kubernetes and comes with everything pre-configured.
+
+**Install k3s**:
 ```bash
-# Install minikube
+# Install k3s (single-node cluster)
+curl -sfL https://get.k3s.io | sh -
+
+# Check installation
+sudo k3s kubectl get nodes
+
+# Make kubectl accessible without sudo
+sudo chmod 644 /etc/rancher/k3s/k3s.yaml
+mkdir -p ~/.kube
+sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+sudo chown $USER:$USER ~/.kube/config
+
+# Verify kubectl works
+kubectl get nodes
+```
+
+**k3s Features**:
+- Single binary < 100MB
+- Built-in local storage provider
+- Minimal resource requirements (512MB RAM recommended)
+- Perfect for Raspberry Pi, edge devices, and development
+- Production-ready with HA support
+
+**Uninstall k3s** (if needed):
+```bash
+# Remove k3s completely
+sudo /usr/local/bin/k3s-uninstall.sh
+```
+
+### Alternative: Other Kubernetes Distributions
+
+If you prefer different environments:
+
+**Minikube** (local development):
+```bash
 curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
 sudo install minikube-linux-amd64 /usr/local/bin/minikube
-
-# Start cluster
 minikube start
 ```
 
 **kind** (Kubernetes in Docker):
 ```bash
-# Install kind
 go install sigs.k8s.io/kind@latest
-
-# Create cluster
 kind create cluster --name k8s-lab
 ```
 
-**k3s** (lightweight Kubernetes):
-```bash
-curl -sfL https://get.k3s.io | sh -
-```
-
-## Installation
+## Getting Started
 
 1. Clone the repository:
 ```bash
