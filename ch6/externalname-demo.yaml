@@ -1,0 +1,85 @@
+# externalname-demo.yaml
+# Map external database to internal service name
+apiVersion: v1
+kind: Service
+metadata:
+  name: external-database
+  labels:
+    service-type: externalname
+spec:
+  type: ExternalName
+  externalName: postgres.external-provider.com
+  ports:
+  - port: 5432
+    targetPort: 5432
+    protocol: TCP
+---
+# Map external API service
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-api
+  labels:
+    service-type: externalname
+spec:
+  type: ExternalName
+  externalName: api.payment-provider.com
+  ports:
+  - port: 443
+    targetPort: 443
+    protocol: TCP
+---
+# Application that uses external services
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-with-externals
+  labels:
+    app: external-demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: external-demo
+  template:
+    metadata:
+      labels:
+        app: external-demo
+    spec:
+      containers:
+      - name: app
+        image: busybox:1.35
+        command: ['sh', '-c']
+        args:
+        - |
+          echo "Application with external service dependencies"
+          echo "Testing DNS resolution for external services..."
+          
+          while true; do
+            echo "=== $(date) ==="
+            
+            # Test database connection
+            echo "Database DNS resolution:"
+            nslookup external-database || echo "Database DNS failed"
+            
+            # Test payment API
+            echo "Payment API DNS resolution:"
+            nslookup payment-api || echo "Payment API DNS failed"
+            
+            echo "Sleeping for 60 seconds..."
+            sleep 60
+          done
+        env:
+        - name: DATABASE_HOST
+          value: "external-database"  # Uses service name
+        - name: DATABASE_PORT
+          value: "5432"
+        - name: PAYMENT_API_URL
+          value: "https://payment-api"  # Uses service name
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "25m"
+          limits:
+            memory: "64Mi"
+            cpu: "50m"
